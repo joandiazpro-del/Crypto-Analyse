@@ -96,7 +96,7 @@ function Terminal() {
   const [loading, setLoading] = useState(true);
   const [liveKline, setLiveKline] = useState(null);
 
-  const { lastMessage, sendMessage, connected } = useWebSocket('ws://localhost:3001');
+  const { lastMessage, sendMessage, connected } = useWebSocket(process.env.REACT_APP_WS_URL || 'ws://localhost:3001');
 
   const toggleMode = () => {
     setInterfaceMode(prev => {
