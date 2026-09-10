@@ -106,23 +106,23 @@ class BinanceService {
   }
 
   async getTickers(symbols) {
-    const results = await Promise.allSettled(
-      symbols.map(s => this.get(`${BINANCE_REST}/ticker/24hr`, { symbol: s.toUpperCase() }))
-    );
-    return results.map((r, i) => {
-      if (r.status === 'fulfilled') {
-        const d = r.value;
-        return {
-          symbol: symbols[i],
-          price: parseFloat(d.lastPrice),
-          change: parseFloat(d.priceChangePercent),
-          volume: parseFloat(d.quoteVolume),
-          high: parseFloat(d.highPrice),
-          low: parseFloat(d.lowPrice),
-          open: parseFloat(d.openPrice)
-        };
-      }
-      return { symbol: symbols[i], error: r.reason?.message };
+    const upper = symbols.map(s => s.toUpperCase());
+    const raw = await this.get(`${BINANCE_REST}/ticker/24hr`, {
+      symbols: JSON.stringify(upper)
+    });
+    const bySymbol = new Map(raw.map(d => [d.symbol, d]));
+    return symbols.map(s => {
+      const d = bySymbol.get(s.toUpperCase());
+      if (!d) return { symbol: s, error: 'unavailable' };
+      return {
+        symbol: s,
+        price: parseFloat(d.lastPrice),
+        change: parseFloat(d.priceChangePercent),
+        volume: parseFloat(d.quoteVolume),
+        high: parseFloat(d.highPrice),
+        low: parseFloat(d.lowPrice),
+        open: parseFloat(d.openPrice)
+      };
     });
   }
 
